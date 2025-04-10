@@ -28,6 +28,8 @@
 #define MOVFilter 8
 uint8_t    accelInit        = 0;
 TickType_t lastMovementTime = 0;
+bool       fallingFlag      = false;
+
 // Order matters for probe order, some Acceleromters do NOT like bad reads; and we have a bunch of overlap of addresses
 void detectAccelerometerVersion() {
 #ifdef ACCEL_MMA
@@ -90,6 +92,14 @@ void detectAccelerometerVersion() {
     DetectedAccelerometerVersion = AccelType::None;
   }
 }
+
+bool detectFalling(int16_t tx, int16_t ty, int16_t tz) {
+  // Simple free-fall detection based on accelerometer readings
+  int32_t magnitude = tx * tx + ty * ty + tz * tz;
+  int32_t threshold = 1000000; // Adjust this threshold as needed
+  return magnitude < threshold;
+}
+
 inline void readAccelerometer(int16_t &tx, int16_t &ty, int16_t &tz, Orientation &rotation) {
 #ifdef ACCEL_MMA
   if (DetectedAccelerometerVersion == AccelType::MMA) {
@@ -137,7 +147,11 @@ inline void readAccelerometer(int16_t &tx, int16_t &ty, int16_t &tz, Orientation
   {
     // do nothing :(
   }
+
+  // Call detectFalling and set the fallingFlag
+  fallingFlag = detectFalling(tx, ty, tz);
 }
+
 void startMOVTask(void const *argument __unused) {
 #ifdef NO_ACCEL
   DetectedAccelerometerVersion = AccelType::None;
@@ -220,6 +234,11 @@ void startMOVTask(void const *argument __unused) {
     }
 
 #endif
+
+    // Turn off the heater if the falling flag is set
+    if (fallingFlag) {
+      currentTempTargetDegC = 0;
+    }
 
     vTaskDelay(TICKS_100MS); // Slow down update rate
   }

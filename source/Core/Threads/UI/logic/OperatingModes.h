@@ -39,6 +39,7 @@ enum class OperatingMode {
   TemperatureAdjust=7,  // Set point temperature adjustment
   UsbPDDebug=8,         // USB PD debugging information
   ThermalRunaway=9,     // Thermal Runaway warning state.
+  Falling=15,           // Falling detection mode
 };
 
 enum class TransitionAnimation {
@@ -79,6 +80,7 @@ OperatingMode performCJCC(const ButtonState buttons, guiContext *cxt);          
 OperatingMode showDebugMenu(const ButtonState buttons, guiContext *cxt);            // Debugging values
 OperatingMode showPDDebug(const ButtonState buttons, guiContext *cxt);              // Debugging menu that shows PD adaptor info
 OperatingMode showWarnings(const ButtonState buttons, guiContext *cxt);             // Shows user warnings if required
+OperatingMode handleFallingMode(const ButtonState buttons, guiContext *cxt);        // Handle falling detection mode
 
 // Common helpers
 int8_t getPowerSourceNumber(void); // Returns number ID of power source
